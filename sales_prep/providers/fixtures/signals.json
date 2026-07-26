@@ -1,0 +1,25 @@
+{
+  "alderleaf-robotics.example": [
+    {
+      "headline": "Alderleaf Robotics closes $42M Series C led by Meridian Ventures",
+      "date": "2025-11-03",
+      "source": "TechWire Daily",
+      "summary": "Funding earmarked for expanding fleet-orchestration software team and doubling manufacturing floor deployments in 2026.",
+      "url": "https://example.com/techwire/alderleaf-series-c"
+    },
+    {
+      "headline": "Alderleaf promotes Jordan Ellery to VP of Operations",
+      "date": "2025-09-15",
+      "source": "Industrial Automation News",
+      "summary": "Ellery previously led plant operations at a competitor; brought in to scale multi-site shift coordination.",
+      "url": "https://example.com/ian/alderleaf-ellery-promotion"
+    },
+    {
+      "headline": "Alderleaf opens second manufacturing floor in Ohio",
+      "date": "2026-02-20",
+      "source": "Regional Business Journal",
+      "summary": "New facility adds ~120 employees; company cited operational reporting complexity as a growing pain point in the announcement.",
+      "url": "https://example.com/rbj/alderleaf-ohio-expansion"
+    }
+  ]
+}

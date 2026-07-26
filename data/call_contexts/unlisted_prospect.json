@@ -1,0 +1,12 @@
+{
+  "prospect_company": "Brightwater Logistics",
+  "prospect_domain": "brightwater-logistics.example",
+  "salesperson_name": "Priya Nakamura",
+  "vendor_product_name": "Vantage Ops Suite",
+  "vendor_product_one_liner": "Unified observability and workflow automation for industrial operations teams",
+  "deal_stage": "cold_outbound",
+  "meeting_type": "15-min intro call",
+  "call_datetime": "2026-08-01T10:00:00-07:00",
+  "sdr_notes": "",
+  "target_stakeholders": ["Taylor Vance"]
+}

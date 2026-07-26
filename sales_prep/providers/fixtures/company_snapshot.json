@@ -1,0 +1,12 @@
+{
+  "alderleaf-robotics.example": {
+    "legal_name": "Alderleaf Robotics, Inc.",
+    "founded_year": 2016,
+    "headquarters": "Portland, OR",
+    "employee_count_range": "250-500",
+    "industry": "Industrial Automation",
+    "funding_stage": "Series C",
+    "last_funding_round": {"amount_usd": 42000000, "date": "2025-11-03", "round": "Series C"},
+    "description": "Builds autonomous mobile robots and fleet-orchestration software for warehouse and manufacturing floors."
+  }
+}

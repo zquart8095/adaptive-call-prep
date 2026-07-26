@@ -1,0 +1,12 @@
+{
+  "prospect_company": "Alderleaf Robotics",
+  "prospect_domain": "alderleaf-robotics.example",
+  "salesperson_name": "Priya Nakamura",
+  "vendor_product_name": "Vantage Ops Suite",
+  "vendor_product_one_liner": "Unified observability and workflow automation for industrial operations teams",
+  "deal_stage": "discovery",
+  "meeting_type": "30-min discovery call",
+  "call_datetime": "2026-07-29T15:00:00-07:00",
+  "sdr_notes": "Champion is VP Ops; mentioned pain around manual shift-handoff reporting.",
+  "target_stakeholders": ["Jordan Ellery", "Sam Okafor"]
+}

@@ -1,0 +1,11 @@
+{
+  "alderleaf-robotics.example": {
+    "known_tools": ["Datadog (infrastructure monitoring)", "PagerDuty", "spreadsheet-based shift handoff logs"],
+    "competitors_evaluated": ["FactoryPulse", "Ops Rival Co"],
+    "fit_gaps": [
+      "Datadog covers infrastructure/uptime, not operational workflow or shift handoff",
+      "No unified system of record for cross-site shift coordination — currently spreadsheets",
+      "FactoryPulse (evaluated 2025) was infra-only, didn't address workflow automation"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "research_agent": "./sales_prep/research_agent/graph.py:graph"
+  },
+  "env": ".env",
+  "http": {
+    "cors": {
+      "allow_origins": ["http://localhost:5173"],
+      "allow_methods": ["*"],
+      "allow_headers": ["*"],
+      "allow_credentials": true
+    }
+  }
+}

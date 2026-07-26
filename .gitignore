@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+credentials.json
+token.json
+output/
+eval_log.jsonl
+.pytest_cache/
+*.egg-info/
+
+# langgraph dev's local state
+.langgraph_api/
+
+# frontend (frontend/.gitignore also covers this, kept here too for
+# anything run from the repo root)
+frontend/node_modules/
+frontend/dist/

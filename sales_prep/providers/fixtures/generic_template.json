@@ -1,0 +1,35 @@
+{
+  "company_snapshot": {
+    "legal_name": "{company}",
+    "founded_year": null,
+    "headquarters": "Unknown",
+    "employee_count_range": "Unknown",
+    "industry": "Unknown",
+    "funding_stage": "Unknown",
+    "last_funding_round": null,
+    "description": "No cached company profile found for {company}. This is placeholder demo data, not a real lookup — see providers/fixture_company_snapshot.py."
+  },
+  "signals": [
+    {
+      "headline": "No recent signals found for {company}",
+      "date": "unknown",
+      "source": "demo-fallback",
+      "summary": "This is placeholder demo data — no real news/signal lookup was performed for {company}.",
+      "url": null
+    }
+  ],
+  "stakeholders": [
+    {
+      "name": "{stakeholder}",
+      "title": "Unknown",
+      "tenure_years": null,
+      "recent_public_activity": "No cached profile found. This is placeholder demo data.",
+      "likely_priorities": []
+    }
+  ],
+  "tech_competitive": {
+    "known_tools": [],
+    "competitors_evaluated": [],
+    "fit_gaps": ["No cached competitive/tech data found for {company}. This is placeholder demo data."]
+  }
+}

@@ -1,0 +1,7 @@
+# Only needed to serve the "Adaptive Call Prep" flow locally via `langgraph
+# dev` (for the frontend/ React app). Kept out of requirements.txt since
+# langgraph-cli[inmem] pulls in a real server stack (uvicorn, etc.) that
+# only matters for that one, explicitly opt-in path — everything else in
+# this repo runs from requirements.txt alone.
+-r requirements.txt
+langgraph-cli[inmem]

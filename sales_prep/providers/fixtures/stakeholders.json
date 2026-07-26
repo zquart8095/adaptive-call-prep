@@ -1,0 +1,18 @@
+{
+  "alderleaf-robotics.example": [
+    {
+      "name": "Jordan Ellery",
+      "title": "VP of Operations",
+      "tenure_years": 1,
+      "recent_public_activity": "Posted on a professional network about the difficulty of coordinating shift handoffs across two manufacturing sites without a shared system of record.",
+      "likely_priorities": ["cross-site operational visibility", "reducing manual shift-handoff reporting"]
+    },
+    {
+      "name": "Sam Okafor",
+      "title": "Director of Manufacturing Systems",
+      "tenure_years": 4,
+      "recent_public_activity": "Spoke on a podcast about scaling robotics fleets without scaling headcount proportionally.",
+      "likely_priorities": ["fleet uptime", "tooling that doesn't require new headcount to operate"]
+    }
+  ]
+}
