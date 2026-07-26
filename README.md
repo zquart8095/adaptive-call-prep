@@ -59,8 +59,8 @@ sales lens, not a generic-research one:
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/zquart8095/sales-call-prep-agent.git
-cd sales-call-prep-agent
+git clone https://github.com/zquart8095/adaptive-call-prep.git
+cd adaptive-call-prep
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
@@ -261,7 +261,7 @@ entirely.
 ## Repo layout
 
 ```
-sales-call-prep-agent/
+adaptive-call-prep/
 ├── README.md
 ├── langgraph.json                 # serves research_agent via `langgraph dev`
 ├── requirements-dev.txt           # requirements.txt + langgraph-cli[inmem]
