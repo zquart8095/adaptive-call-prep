@@ -126,21 +126,8 @@ See **Testing** below for what each file covers.
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    START([START]) --> ingest[ingest_research_context]
-    ingest --> plan[generate_research_plan]
-    plan --> gate{{plan_approval_gate HITL}}
-    gate -- revise --> plan
-    gate -- approved --> outline[build_outline]
-    outline --> gather[gather_section]
-    gather --> critique[critique_section]
-    critique -- gaps found, iteration < max --> gather
-    critique -- sufficient or max reached --> advance[advance_section]
-    advance -- more sections --> gather
-    advance -- done --> compose[compose_report]
-    compose --> END([END])
-```
+The diagram at the top of this README is the whole graph — every node name and
+routing condition in it comes straight from `sales_prep/research_agent/graph.py`.
 
 `sales_prep/research_agent/` reuses fixture providers (`sales_prep/providers/` — four
 `Protocol`-shaped adapters over bundled JSON, with a clearly-labeled `is_demo_fallback`
