@@ -1,5 +1,7 @@
 # Adaptive Call Prep
 
+![Adaptive Call Prep architecture: a human-gated planning loop feeding an autonomous, bounded reflect-and-refine research loop that ends in a composed call action plan](docs/architecture.png)
+
 An AI agent that preps a salesperson for an upcoming call: propose a research plan
 scoped to the deal, let a human approve or revise it, then research autonomously —
 reflecting on its own findings and looping back for more when it finds a real gap —
@@ -265,6 +267,7 @@ adaptive-call-prep/
 ├── README.md
 ├── langgraph.json                 # serves research_agent via `langgraph dev`
 ├── requirements-dev.txt           # requirements.txt + langgraph-cli[inmem]
+├── docs/                          # hero diagram + the script that generates it
 ├── data/call_contexts/            # fictional call-context inputs
 ├── sales_prep/
 │   ├── config.py                  # CallContext
