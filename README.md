@@ -188,41 +188,6 @@ no-op when disabled).
 
 ---
 
-## Verified for real — including two real bugs it caught
-
-Ran full sessions through both the CLI and the actual browser frontend (real Anthropic
-calls, real `langgraph dev` server, real Chrome automation — not simulated): proposed a
-plan, revised it with feedback, watched it correctly restructure goals around the
-feedback, approved it, watched the reflect-loop *actually* fire (a section got
-critiqued as insufficient, triggered a real follow-up web search, got re-critiqued as
-sufficient), and got a complete, well-grounded final report with a genuinely useful
-call action plan.
-
-Two real bugs found and fixed during that verification, not hypotheticals:
-- **`compose_report`'s JSON got truncated mid-string** on a 5-goal plan —
-  `max_tokens=1536` (the default for `call_for_json`) was too small for composing that
-  much section narrative plus a full action plan. Fixed by raising it to `8192` for
-  this specific call *and* tightening the prompt to explicitly ask for concise (2-4
-  sentence) section narrative — both reduces truncation risk and produces a more
-  scannable pre-call brief, which was the actual design goal anyway.
-- **`ReportView` only resolved `[cite-N]` markers in per-section narrative, not the
-  executive summary** — the model sometimes cites sources in the summary too
-  (reasonably; nothing in the prompt forbade it), so those markers were rendering as
-  literal `[cite-1]` text instead of styled citation links. Fixed by routing the
-  executive summary through the same marker-resolution function.
-
-**A real, honest finding, not a bug**: because "Jordan Ellery" and "Sam Okafor" are
-fictional demo names, live `web_search` returns a lot of irrelevant real people who
-happen to share those names (LinkedIn profiles, Wikipedia pages, TikTok accounts) —
-noisy citations. The composed report handled this correctly on its own: it explicitly
-caveated that *"public web search could not independently corroborate company or
-contact details... treat org-chart and authority specifics as unverified until
-confirmed live on the call"* rather than presenting noisy search hits as confirmed
-facts. Worth knowing if you swap in a real prospect name — the mismatch goes away
-entirely.
-
----
-
 ## Testing
 
 ```bash
