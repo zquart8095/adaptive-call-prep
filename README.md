@@ -146,6 +146,16 @@ doing something rather than re-querying static data with cosmetic param tweaks.
   builds the citation registry in Python *before* calling the LLM (fixture-derived
   citations get `url=None`, real web citations get a real URL) — the model only ever
   sees the registry, so it can't invent a URL or a fact not present in the findings.
+  This one call runs at `max_tokens=8192` rather than `call_for_json`'s 1536 default: a
+  five-goal plan has to fit every section's narrative *and* a complete action plan into
+  a single response, and the prompt asks for 2-4 sentence sections so the brief stays
+  scannable at that length instead of merely fitting.
+- **Citation markers resolve everywhere the model can emit them.** Nothing in the prompt
+  restricts citing to per-section narrative, and the composer reasonably cites in the
+  executive summary too — so `ReportView` routes both through the same `[cite-N]`
+  resolution pass (`renderNarrative`). A marker that leaks through as literal
+  `[cite-1]` text is worse than no citation at all: it reads as a bug in exactly the
+  place the report is asking to be trusted.
 - **Testability via constructor injection.** Every LLM-calling node is a factory
   (`make_generate_research_plan(client=None)`), and `build_graph(anthropic_client=None)`
   threads one injected client through all of them — tests drive the **whole compiled
@@ -247,6 +257,12 @@ adaptive-call-prep/
   plan-review survives a restart.
 - **No `Send`-based parallel fan-out** for research sections (see Architecture above) —
   sequential, bounded, and deliberately keeps the Activity Timeline readable.
+- **Fictional prospect names make the live `web_search` pass noisy.** "Jordan Ellery" and
+  "Sam Okafor" are invented, so follow-up searches surface real, unrelated people who
+  happen to share those names. The composer handles this the right way unprompted — it
+  caveats that public search couldn't corroborate org-chart or authority specifics and
+  marks them unverified rather than presenting the hits as fact — but the noise is
+  inherent to demo data and disappears entirely against a real prospect.
 
 ---
 
