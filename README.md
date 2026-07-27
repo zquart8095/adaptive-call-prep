@@ -1,12 +1,12 @@
 # Adaptive Call Prep
 
-![Adaptive Call Prep architecture: a human-gated planning loop feeding an autonomous, bounded reflect-and-refine research loop that ends in a composed call action plan](docs/architecture.png)
-
 An AI agent that preps a salesperson for an upcoming call: propose a research plan
 scoped to the deal, let a human approve or revise it, then research autonomously —
 reflecting on its own findings and looping back for more when it finds a real gap —
 before composing a call-ready action plan (suggested opener, ranked discovery
 questions, anticipated objections with responses), fully cited.
+
+![Adaptive Call Prep running end to end: setting the call context, reviewing the proposed research plan, watching the autonomous research stream, and reading the finished cited report](docs/demo.gif)
 
 **This is a from-scratch portfolio demo.** The company, scenario, and data are entirely
 fictional ("Alderleaf Robotics," a made-up industrial robotics company). It exists to
@@ -14,42 +14,16 @@ demonstrate a set of engineering patterns I use in production agent work — Lan
 `interrupt()`-based human-in-the-loop, a bounded reflect-and-refine research loop, and a
 real streaming React frontend — without exposing any actual client code or data.
 
-Requires an `ANTHROPIC_API_KEY` — plan generation, critique, and report composition all
-need a real model call, and there's no deterministic template fallback for this flow.
+## Key Features
 
----
+| Feature | Description |
+|---|---|
+| **Human-gated planning** | The agent proposes research goals scoped to the deal, then stops. Nothing runs until a person approves or sends feedback — LangGraph `interrupt()` / `Command(resume=...)`, with revisions looping back into plan generation. |
+| **Bounded reflect-and-refine research** | Every section is critiqued against a sales-specific bar. A real gap triggers a targeted follow-up `web_search`; the loop is capped by `max_iterations_per_section` so it can't spin. |
+| **Cited, call-ready output** | Not a research report — a suggested opener, ranked discovery questions, and anticipated objections with responses. The citation registry is assembled in Python before the model is called, so it can't invent a source. |
+| **Real streaming frontend** | React + Vite + Tailwind + shadcn/ui driven by `@langchain/langgraph-sdk`'s `useStream` — a live Activity Timeline and the plan-approval interrupt surfaced as real UI, not a mock. |
 
-## Why this shape
-
-Inspired by Google's ["Deep Search" ADK sample](https://github.com/google/adk-samples/tree/main/python/agents/deep-search)
-and its predecessor, the LangGraph-native
-[Gemini Fullstack Quickstart](https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart)
-— both share a two-phase shape (propose a plan → human approves/revises it →
-autonomous research with a reflect-and-refine loop → cited report), and the latter maps
-directly onto a LangGraph backend.
-
-**This isn't a reskin of that pattern with sales fixture data plugged into generic
-slots.** The plan, the critique, and the final output are all reasoned about through a
-sales lens, not a generic-research one:
-
-- **Plan generation reasons about `deal_stage`.** A `cold_outbound` call gets a
-  different plan than a `negotiation`-stage one — goals are framed as real sales-prep
-  needs (mapping the buying committee, assessing fit/pain, gauging competitive
-  displacement risk, finding a warm opener), and each goal carries an explicit
-  `why_it_matters_for_this_call` field, not just a research topic.
-- **The critique step's "is this enough" question is sales-specific**, not generic
-  completeness: *"would {salesperson} feel ready to run this {meeting_type} at the
-  {deal_stage} stage with what's been found?"* — gaps read as sales blind spots ("no
-  signal on who holds budget authority"), not research thinness.
-- **The output is a call-ready action plan, not a research report**: a suggested
-  opener, ranked discovery questions, and anticipated objections with suggested
-  responses — the concrete artifact a rep actually opens before the call, built by an
-  adaptive process that went and closed real gaps first, not a fixed synthesis pass
-  over static data.
-
----
-
-## Quickstart
+## Setup and Installation
 
 ### Prerequisites
 
@@ -122,12 +96,101 @@ for the frontend-serving path.
 All tests run offline against fake LLM clients — no API key spent, no network calls.
 See **Testing** below for what each file covers.
 
----
+## Agent Details
 
-## Architecture
+| Attribute | Detail |
+|---|---|
+| **Interaction type** | Human-in-the-loop gate, then fully autonomous |
+| **Complexity** | Intermediate |
+| **Agent type** | Single LangGraph `StateGraph`, eight nodes, three conditional edges |
+| **Components** | `interrupt()` approval gate, bounded critique loop, Anthropic hosted `web_search`, `Protocol`-shaped fixture providers, streaming React frontend |
+| **Model** | `claude-sonnet-5` for every LLM call (plan, critique, compose) |
+| **Vertical** | Sales / GTM |
 
-The diagram at the top of this README is the whole graph — every node name and
-routing condition in it comes straight from `sales_prep/research_agent/graph.py`.
+## How the Agent Thinks: A Two-Phase Workflow
+
+![Adaptive Call Prep architecture: a human-gated planning loop feeding an autonomous, bounded reflect-and-refine research loop that ends in a composed call action plan](docs/architecture.png)
+
+Every node name and routing condition in that diagram comes straight from
+`sales_prep/research_agent/graph.py`.
+
+### Phase 1: Plan & Refine (Human-in-the-Loop)
+
+`ingest_research_context` seeds the run, then `generate_research_plan` asks
+`claude-sonnet-5` for a set of goals scoped to this specific deal. `plan_approval_gate`
+calls `interrupt()` and the graph stops there.
+
+Approving routes to `build_outline`. Sending feedback routes back to
+`generate_research_plan` with the prior plan *and* the feedback in the prompt, and
+increments `plan_revision`. This loop is deliberately **unbounded** — a person controls
+the pace, so there's nothing to cap.
+
+### Phase 2: Execute Autonomous Research
+
+`build_outline` converts the approved plan into an ordered section list — no LLM call
+needed, since plan generation already assigned `skill_hints` per goal. Then, per section:
+
+1. **`gather_section`** — on iteration 0, pulls from the fixture providers named by that
+   goal's `skill_hints`.
+2. **`critique_section`** — asks `claude-sonnet-5` a sales-specific question, not a
+   generic-completeness one: *would this rep feel ready to run this meeting at this deal
+   stage with what's been found?*
+3. **Route.** A gap under the cap loops back to `gather_section`, which this time runs
+   Anthropic's hosted `web_search` aimed at the exact `focus_for_next_search` the
+   critique named. Sufficient, or `max_iterations_per_section` reached, falls through to
+   `advance_section`.
+4. **`advance_section`** — next section, or `compose_report` when they're all done.
+
+Unlike Phase 1, this loop **is** bounded — it's machine-driven, so it gets a cap.
+
+## Why this shape
+
+Inspired by Google's ["Deep Search" ADK sample](https://github.com/google/adk-samples/tree/main/python/agents/deep-search)
+and its predecessor, the LangGraph-native
+[Gemini Fullstack Quickstart](https://github.com/google-gemini/gemini-fullstack-langgraph-quickstart)
+— both share a two-phase shape (propose a plan → human approves/revises it →
+autonomous research with a reflect-and-refine loop → cited report), and the latter maps
+directly onto a LangGraph backend.
+
+**This isn't a reskin of that pattern with sales fixture data plugged into generic
+slots.** The plan, the critique, and the final output are all reasoned about through a
+sales lens, not a generic-research one:
+
+- **Plan generation reasons about `deal_stage`.** A `cold_outbound` call gets a
+  different plan than a `negotiation`-stage one — goals are framed as real sales-prep
+  needs (mapping the buying committee, assessing fit/pain, gauging competitive
+  displacement risk, finding a warm opener), and each goal carries an explicit
+  `why_it_matters_for_this_call` field, not just a research topic.
+- **The critique step's "is this enough" question is sales-specific**, not generic
+  completeness: *"would {salesperson} feel ready to run this {meeting_type} at the
+  {deal_stage} stage with what's been found?"* — gaps read as sales blind spots ("no
+  signal on who holds budget authority"), not research thinness.
+- **The output is a call-ready action plan, not a research report**: a suggested
+  opener, ranked discovery questions, and anticipated objections with suggested
+  responses — the concrete artifact a rep actually opens before the call, built by an
+  adaptive process that went and closed real gaps first, not a fixed synthesis pass
+  over static data.
+
+### Orchestration engine: LangGraph vs. Google ADK
+
+Built on **LangGraph** (`StateGraph`, `interrupt()`), but I've also built the equivalent
+topology on **Google's Agent Development Kit** (its graph-based `Workflow` API —
+`nodes`/`edges`/`JoinNode`/`RequestInput`) in production client work. The two are a real
+trade-off, not just a coin flip:
+
+| | LangGraph | Google ADK (Workflow API) |
+|---|---|---|
+| Setup to run locally | `pip install langgraph` | GCP project, `agents-cli` scaffolding |
+| HITL primitive | `interrupt()` / `Command(resume=...)` | `RequestInput` / `ctx.resume_inputs` |
+| Ecosystem recognition | Broad, framework-agnostic | Newer, Google-specific |
+| Natural deploy target | Anywhere (Docker, Lambda, etc.) | Vertex AI Agent Runtime, Cloud Run, GKE |
+
+LangGraph was the right choice here specifically because `langgraph dev`'s local
+in-memory server is exactly what a real streaming frontend needs, with no cloud project
+required. ADK's Workflow API is the better choice when a Google-Cloud-native deploy
+target is already part of the plan.
+
+## Design decisions
 
 `sales_prep/research_agent/` reuses fixture providers (`sales_prep/providers/` — four
 `Protocol`-shaped adapters over bundled JSON, with a clearly-labeled `is_demo_fallback`
@@ -166,25 +229,6 @@ doing something rather than re-querying static data with cosmetic param tweaks.
   consistent across every LLM-calling node in this repo rather than mixing in
   `langchain-anthropic` for some paths.
 
-### Orchestration engine: LangGraph vs. Google ADK
-
-Built on **LangGraph** (`StateGraph`, `interrupt()`), but I've also built the equivalent
-topology on **Google's Agent Development Kit** (its graph-based `Workflow` API —
-`nodes`/`edges`/`JoinNode`/`RequestInput`) in production client work. The two are a real
-trade-off, not just a coin flip:
-
-| | LangGraph | Google ADK (Workflow API) |
-|---|---|---|
-| Setup to run locally | `pip install langgraph` | GCP project, `agents-cli` scaffolding |
-| HITL primitive | `interrupt()` / `Command(resume=...)` | `RequestInput` / `ctx.resume_inputs` |
-| Ecosystem recognition | Broad, framework-agnostic | Newer, Google-specific |
-| Natural deploy target | Anywhere (Docker, Lambda, etc.) | Vertex AI Agent Runtime, Cloud Run, GKE |
-
-LangGraph was the right choice here specifically because `langgraph dev`'s local
-in-memory server is exactly what a real streaming frontend needs, with no cloud project
-required. ADK's Workflow API is the better choice when a Google-Cloud-native deploy
-target is already part of the plan.
-
 ### Optional LangSmith tracing
 
 Set `LANGSMITH_API_KEY` **and** `LANGSMITH_TRACING=true` in `.env` (both required — the
@@ -195,8 +239,6 @@ client so LLM calls show up as nested spans with full prompt/response — a no-o
 passthrough when tracing is off, verified in `tests/test_observability.py` against the
 real gating logic (key-without-flag stays off, `wrap_anthropic_if_enabled` is a true
 no-op when disabled).
-
----
 
 ## Testing
 
@@ -220,8 +262,6 @@ no-op when disabled).
 - `test_research_agent_compose.py` — citation-registry assembly: stable `cite-N` ids,
   fixture citations never get a fabricated URL
 
----
-
 ## Repo layout
 
 ```
@@ -229,7 +269,7 @@ adaptive-call-prep/
 ├── README.md
 ├── langgraph.json                 # serves research_agent via `langgraph dev`
 ├── requirements-dev.txt           # requirements.txt + langgraph-cli[inmem]
-├── docs/                          # hero diagram + the script that generates it
+├── docs/                          # demo gif, architecture diagram + its generator
 ├── data/call_contexts/            # fictional call-context inputs
 ├── sales_prep/
 │   ├── config.py                  # CallContext
@@ -241,11 +281,28 @@ adaptive-call-prep/
 └── tests/
 ```
 
----
+## Technologies Used
+
+### Backend
+
+- **Python 3.10+**
+- **LangGraph** — `StateGraph`, `interrupt()` / `Command(resume=...)`, `MemorySaver`
+- **Anthropic Python SDK** — raw `client.messages.create(...)`, no LangChain model wrapper
+- **Anthropic hosted `web_search` tool** — the reflect-loop's follow-up research
+- **Pydantic** — `ResearchReport` / `Citation` / `CallActionPlan`
+- **pytest** — full-graph tests against a fake client, fully offline
+- **LangSmith** *(optional)* — per-node and per-LLM-call tracing
+
+### Frontend
+
+- **React + TypeScript + Vite**
+- **Tailwind CSS + shadcn/ui**
+- **`@langchain/langgraph-sdk`** — the `useStream` hook driving the Activity Timeline
+  and the plan-approval interrupt
 
 ## What this intentionally omits
 
-- **No real vendor integrations** — fixture data only, by design (see Architecture
+- **No real vendor integrations** — fixture data only, by design (see Design decisions
   above). Swapping in a real company-data API, news API, or people-search API is
   exactly the seam `providers/` exists for.
 - **No dual orchestration-engine implementation.** I've built the ADK equivalent in
@@ -255,16 +312,14 @@ adaptive-call-prep/
   CLI; the frontend's `langgraph dev` server is dev-only, in-memory state. A real
   deployment would use a durable checkpointer (Postgres, SQLite) so a paused
   plan-review survives a restart.
-- **No `Send`-based parallel fan-out** for research sections (see Architecture above) —
-  sequential, bounded, and deliberately keeps the Activity Timeline readable.
+- **No `Send`-based parallel fan-out** for research sections (see Design decisions
+  above) — sequential, bounded, and deliberately keeps the Activity Timeline readable.
 - **Fictional prospect names make the live `web_search` pass noisy.** "Jordan Ellery" and
   "Sam Okafor" are invented, so follow-up searches surface real, unrelated people who
   happen to share those names. The composer handles this the right way unprompted — it
   caveats that public search couldn't corroborate org-chart or authority specifics and
   marks them unverified rather than presenting the hits as fact — but the noise is
   inherent to demo data and disappears entirely against a real prospect.
-
----
 
 ## License
 
